@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -59,28 +60,77 @@ public class MainActivity extends AppCompatActivity {
         animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.animation);
         Music music=new Music();
         restore(music);
-        media_active=music.getMedia();
-        image.setImageResource(music.getImage());
-        name.setText(music.getName());
-        intent.putExtra("media",media_active);
-        toggleButton.setChecked(true);
-        image.startAnimation(animation);
-        myThread();
-        if (pause == true) {
+        toggleButtonReplay.setChecked(replay);
+        boolean contain=false;
+        for(int i=0;i<list.size();i++){
+            if(music.getId()==list.get(i).getId()){
+                contain=true;
+                break;
+            }
+        }
+        if(contain==false){
+            media_active=list.get(0).getMedia();
+            image.setImageResource(list.get(0).getImage());
+            name.setText(list.get(0).getName());
+            intent.putExtra("media",media_active);
+            toggleButton.setChecked(true);
             stopService(intent);
             startService(intent);
             pause=true;
             toggleButton.setChecked(false);
             image.clearAnimation();
             save();
+            Log.d("not contain","not contain");
         }
-        toggleButtonReplay.setChecked(replay);
+        else{
+            media_active=music.getMedia();
+            image.setImageResource(music.getImage());
+            name.setText(music.getName());
+            intent.putExtra("media",media_active);
+            toggleButton.setChecked(true);
+            Log.d("contain","contain");
+        }
+        image.startAnimation(animation);
+        if(MyService.mp!=null){
+            progressBar.setProgress(MyService.mp.getCurrentPosition()/1000);
+            progressBar.setMax(MyService.mp.getDuration()/1000);
+            new Thread(){
+                @Override
+                public void run() {
+                    for (int i = MyService.mp.getCurrentPosition(); i < MyService.mp.getDuration(); i=i+1000) {
+                        try {
+                            progressBar.setProgress(MyService.mp.getCurrentPosition()/1000);
+                            Thread.sleep(1000);
+                        }
+                        catch (InterruptedException ex) {
+                            break;
+                        }
+                    }
+                }
+            }.start();
+        }
+        if (pause == true) {
+            stopService(intent);
+            startService(intent);
+            pause=true;
+            toggleButton.setChecked(false);
+            image.clearAnimation();
+        }
+        else{
+            if(MyService.mp==null){
+                MyService.mp=MediaPlayer.create(MainActivity.this,media_active);
+                pause=true;
+                toggleButton.setChecked(false);
+                image.clearAnimation();
+
+                Log.d("mp null","mp null");
+            }
+        }
+        save();
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(MainActivity.this);
         RecycleMusicAdapter recycleMusicAdapter=new RecycleMusicAdapter(this,list);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(recycleMusicAdapter);
-
-
 
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(this, recyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
@@ -108,9 +158,11 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked){
                     replay=true;
+                    save();
                 }
                 else{
                     replay=false;
+                    save();
                 }
             }
         });
@@ -120,10 +172,8 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     if(MyService.mp!=null){
-
                         MyService.mp.start();
                         pause=false;
-                        save();
                         progressBar.setMax(MyService.mp.getDuration()/1000);
                         new Thread(){
                             @Override
@@ -144,13 +194,13 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onCompletion(MediaPlayer mp) {
                                 if(replay==true){
-                                    MyService.mp.start();
-                                    myThread();
+                                    replay();
                                 }
                                 else
                                     autoPlay();
                             }
                         });
+                        save();
                     }
                 } else {
                     if(MyService.mp!=null){
@@ -234,6 +284,23 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    public void replay(){
+        if(MyService.mp!=null){
+            toggleButton.setChecked(false);
+            toggleButton.setChecked(true);
+            MyService.mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    if(replay==true){
+                       replay();
+                    }
+                    else
+                        autoPlay();
+                }
+            });
+        }
+    }
+
     public void autoPlay(){
         pause=true;
         toggleButton.setChecked(false);
@@ -299,26 +366,5 @@ public class MainActivity extends AppCompatActivity {
         music.setMedia(sharedPreferences.getInt("media",-1));
         pause=sharedPreferences.getBoolean("pause",false);
         replay=sharedPreferences.getBoolean("replay",false);
-    }
-    public void myThread(){
-
-        if(MyService.mp!=null){
-            progressBar.setProgress(MyService.mp.getCurrentPosition()/1000);
-            progressBar.setMax(MyService.mp.getDuration()/1000);
-            new Thread(){
-                @Override
-                public void run() {
-                    for (int i = MyService.mp.getCurrentPosition(); i < MyService.mp.getDuration(); i=i+1000) {
-                        try {
-                            progressBar.setProgress(MyService.mp.getCurrentPosition()/1000);
-                            Thread.sleep(1000);
-                        }
-                        catch (InterruptedException ex) {
-                            break;
-                        }
-                    }
-                }
-            }.start();
-        }
     }
 }
