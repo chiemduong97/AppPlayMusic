@@ -11,6 +11,8 @@ import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -32,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean replay;
     private Intent intent;
     private ProgressBar progressBar;
-    private Thread thread;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
         list.add(new Music(4,R.drawable.thethai,"Thế thái",R.raw.thethai));
         list.add(new Music(5,R.drawable.tinhbandieuky,"Tình bạn diệu kỳ",R.raw.tinhbandieuky));
         media_active=list.get(0).getMedia();
+        Animation animation;
+        animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.animation);
         Music music=new Music();
         restore(music);
         media_active=music.getMedia();
@@ -61,12 +64,14 @@ public class MainActivity extends AppCompatActivity {
         name.setText(music.getName());
         intent.putExtra("media",media_active);
         toggleButton.setChecked(true);
+        image.startAnimation(animation);
         myThread();
         if (pause == true) {
             stopService(intent);
             startService(intent);
             pause=true;
             toggleButton.setChecked(false);
+            image.clearAnimation();
             save();
         }
         toggleButtonReplay.setChecked(replay);
@@ -74,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
         RecycleMusicAdapter recycleMusicAdapter=new RecycleMusicAdapter(this,list);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(recycleMusicAdapter);
+
+
 
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(this, recyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
@@ -118,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
                         pause=false;
                         save();
                         progressBar.setMax(MyService.mp.getDuration()/1000);
-                        thread=new Thread(){
+                        new Thread(){
                             @Override
                             public void run() {
                                 for (int i = MyService.mp.getCurrentPosition(); i < MyService.mp.getDuration(); i=i+1000) {
@@ -131,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                             }
-                        };
-                        thread.start();
+                        }.start();
+                        image.startAnimation(animation);
                         MyService.mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                             @Override
                             public void onCompletion(MediaPlayer mp) {
@@ -149,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
                     if(MyService.mp!=null){
                         MyService.mp.pause();
                         pause=true;
+                        image.clearAnimation();
                         save();
                     }
                 }
@@ -293,8 +301,11 @@ public class MainActivity extends AppCompatActivity {
         replay=sharedPreferences.getBoolean("replay",false);
     }
     public void myThread(){
+
         if(MyService.mp!=null){
-            thread=new Thread(){
+            progressBar.setProgress(MyService.mp.getCurrentPosition()/1000);
+            progressBar.setMax(MyService.mp.getDuration()/1000);
+            new Thread(){
                 @Override
                 public void run() {
                     for (int i = MyService.mp.getCurrentPosition(); i < MyService.mp.getDuration(); i=i+1000) {
@@ -307,8 +318,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-            };
-            thread.start();
+            }.start();
         }
     }
 }
