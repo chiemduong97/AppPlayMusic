@@ -23,12 +23,13 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ArrayList<Music> list;
-    private ToggleButton toggleButton;
+    private ToggleButton toggleButton,toggleButtonReplay;
     private int media_active;
     private ImageView image;
     private TextView name;
     private ImageView prev,next;
     private boolean pause;
+    private boolean replay;
     private Intent intent;
     private ProgressBar progressBar;
     private Thread thread;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         recyclerView=findViewById(R.id.recyclerView);
         toggleButton=findViewById(R.id.toggle);
+        toggleButtonReplay=findViewById(R.id.toggle_replay);
         image=findViewById(R.id.image);
         name=findViewById(R.id.name);
         prev=findViewById(R.id.prev);
@@ -59,23 +61,7 @@ public class MainActivity extends AppCompatActivity {
         name.setText(music.getName());
         intent.putExtra("media",media_active);
         toggleButton.setChecked(true);
-        if(MyService.mp!=null){
-            thread=new Thread(){
-                @Override
-                public void run() {
-                    for (int i = 0; i < MyService.mp.getDuration(); i++) {
-                        try {
-                            progressBar.setProgress(MyService.mp.getCurrentPosition()/1000);
-                            Thread.sleep(1000);
-                        }
-                        catch (InterruptedException ex) {
-                            break;
-                        }
-                    }
-                }
-            };
-            thread.start();
-        }
+        myThread();
         if (pause == true) {
             stopService(intent);
             startService(intent);
@@ -83,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             toggleButton.setChecked(false);
             save();
         }
-
+        toggleButtonReplay.setChecked(replay);
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(MainActivity.this);
         RecycleMusicAdapter recycleMusicAdapter=new RecycleMusicAdapter(this,list);
         recyclerView.setLayoutManager(linearLayoutManager);
@@ -109,6 +95,18 @@ public class MainActivity extends AppCompatActivity {
             }
         }));
 
+
+        toggleButtonReplay.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    replay=true;
+                }
+                else{
+                    replay=false;
+                }
+            }
+        });
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
@@ -123,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                         thread=new Thread(){
                             @Override
                             public void run() {
-                                for (int i = 0; i < MyService.mp.getDuration(); i++) {
+                                for (int i = MyService.mp.getCurrentPosition(); i < MyService.mp.getDuration(); i=i+1000) {
                                     try {
                                         progressBar.setProgress(MyService.mp.getCurrentPosition()/1000);
                                         Thread.sleep(1000);
@@ -138,7 +136,12 @@ public class MainActivity extends AppCompatActivity {
                         MyService.mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                             @Override
                             public void onCompletion(MediaPlayer mp) {
-                                autoPlay();
+                                if(replay==true){
+                                    MyService.mp.start();
+                                    myThread();
+                                }
+                                else
+                                    autoPlay();
                             }
                         });
                     }
@@ -277,6 +280,7 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("name",name);
         editor.putInt("media",media);
         editor.putBoolean("pause",pause);
+        editor.putBoolean("replay",replay);
         editor.commit();
     }
     public void restore(Music music){
@@ -286,5 +290,25 @@ public class MainActivity extends AppCompatActivity {
         music.setName(sharedPreferences.getString("name",""));
         music.setMedia(sharedPreferences.getInt("media",-1));
         pause=sharedPreferences.getBoolean("pause",false);
+        replay=sharedPreferences.getBoolean("replay",false);
+    }
+    public void myThread(){
+        if(MyService.mp!=null){
+            thread=new Thread(){
+                @Override
+                public void run() {
+                    for (int i = MyService.mp.getCurrentPosition(); i < MyService.mp.getDuration(); i=i+1000) {
+                        try {
+                            progressBar.setProgress(MyService.mp.getCurrentPosition()/1000);
+                            Thread.sleep(1000);
+                        }
+                        catch (InterruptedException ex) {
+                            break;
+                        }
+                    }
+                }
+            };
+            thread.start();
+        }
     }
 }

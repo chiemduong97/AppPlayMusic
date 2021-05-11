@@ -64,6 +64,15 @@
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:src="@drawable/next"/>
+                <ToggleButton
+                    android:id="@+id/toggle_replay"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginLeft="2dp"
+                    android:textOn=""
+                    android:textOff=""
+                    android:checked="false"
+                    android:background="@drawable/toogle_custom_replay"/>
             </LinearLayout>
         </LinearLayout>
         </androidx.cardview.widget.CardView>
