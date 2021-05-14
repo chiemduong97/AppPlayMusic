@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.IBinder;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -37,22 +38,20 @@ public class MyService extends Service {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void startMyOwnForeground(){
-        String NOTIFICATION_CHANNEL_ID = "com.example.simpleapp";
+        String NOTIFICATION_CHANNEL_ID = "com.example.simple";
         String channelName = "My Background Service";
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
-        chan.setLightColor(Color.BLUE);
-        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         assert manager != null;
         manager.createNotificationChannel(chan);
-
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
         Notification notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.drawable.ic_music)
                 .setContentTitle("Lab1 is running")
-                .setPriority(NotificationManager.IMPORTANCE_MIN)
-                .setCategory(Notification.CATEGORY_SERVICE)
+                .setChannelId(NOTIFICATION_CHANNEL_ID)
+                .setAutoCancel(true)
                 .build();
+
         startForeground(2, notification);
     }
 
@@ -65,7 +64,6 @@ public class MyService extends Service {
 
     @Override
     public void onDestroy() {
-        Toast.makeText(this,"onSerViceDestroy",Toast.LENGTH_SHORT).show();
         mp.stop();
         super.onDestroy();
     }
