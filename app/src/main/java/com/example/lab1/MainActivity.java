@@ -400,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "notification-id");
         builder.setSmallIcon(R.drawable.ic_music);
-        builder.setContentTitle(name.getText().toString()+" is playing");
+        builder.setContentTitle("Music is playing");
         builder.setCustomBigContentView(notificationLayout);
         builder.setAutoCancel(true);
         return builder.build();

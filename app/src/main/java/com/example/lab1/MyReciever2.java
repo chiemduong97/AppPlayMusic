@@ -1,17 +1,9 @@
 package com.example.lab1;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class MyReciever2 extends BroadcastReceiver {
     @Override
