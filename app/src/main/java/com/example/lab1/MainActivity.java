@@ -12,6 +12,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -398,11 +399,16 @@ public class MainActivity extends AppCompatActivity {
         notificationLayout.setOnClickPendingIntent(R.id.prev_noti,onButtonNotificationClick(R.id.prev_noti));
         notificationLayout.setOnClickPendingIntent(R.id.next_noti,onButtonNotificationClick(R.id.next_noti));
 
+        Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
+        resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(getApplicationContext(),1,resultIntent,PendingIntent.FLAG_ONE_SHOT);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "notification-id");
         builder.setSmallIcon(R.drawable.ic_music);
         builder.setContentTitle("Music is playing");
         builder.setCustomBigContentView(notificationLayout);
         builder.setAutoCancel(true);
+        builder.setContentIntent(resultPendingIntent);
         return builder.build();
     }
     private PendingIntent onButtonNotificationClick(@IdRes int id) {

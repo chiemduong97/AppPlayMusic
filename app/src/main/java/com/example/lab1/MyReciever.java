@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -30,7 +31,9 @@ public class MyReciever extends BroadcastReceiver {
         assert notificationManager != null;
         Notification notification=intent.getParcelableExtra("noti");
         notificationManager.notify(1 , notification) ;
+
         Log.d("noti","run");
+
 
     }
 
