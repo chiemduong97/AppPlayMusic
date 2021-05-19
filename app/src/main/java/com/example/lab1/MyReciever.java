@@ -24,14 +24,13 @@ public class MyReciever extends BroadcastReceiver {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE ) ;
         if (android.os.Build.VERSION. SDK_INT >= android.os.Build.VERSION_CODES. O ) {
             int importance = NotificationManager.IMPORTANCE_HIGH ;
-            NotificationChannel notificationChannel = new NotificationChannel( "Channel" , "NOTIFICATION_CHANNEL_NAME" , importance) ;
+            NotificationChannel notificationChannel = new NotificationChannel( "Channel" , "NOTIFICATION_MUSIC" , importance) ;
             assert notificationManager != null;
             notificationManager.createNotificationChannel(notificationChannel) ;
         }
         assert notificationManager != null;
         Notification notification=intent.getParcelableExtra("noti");
         notificationManager.notify(1 , notification) ;
-
         Log.d("noti","run");
 
 

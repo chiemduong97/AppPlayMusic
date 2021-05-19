@@ -30,14 +30,14 @@ public class MyService extends Service {
     public void onCreate() {
         super.onCreate();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            startMyOwnForeground();
+            startMyForeground();
         else
             startForeground(1, new Notification());
     }
 
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void startMyOwnForeground(){
+    public void startMyForeground(){
         String NOTIFICATION_CHANNEL_ID = "com.example.simple";
         String channelName = "My Background Service";
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
