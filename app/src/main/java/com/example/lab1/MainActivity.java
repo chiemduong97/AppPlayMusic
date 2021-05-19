@@ -403,6 +403,7 @@ public class MainActivity extends AppCompatActivity {
         builder.setCustomBigContentView(notificationLayout);
         builder.setAutoCancel(true);
         builder.setContentIntent(resultPendingIntent);
+        builder.setChannelId("Channel");
         return builder.build();
     }
     private PendingIntent onButtonNotificationClick(@IdRes int id) {

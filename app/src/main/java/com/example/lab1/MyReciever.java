@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.core.app.NotificationCompat;
 
@@ -30,7 +31,7 @@ public class MyReciever extends BroadcastReceiver {
         }
         assert notificationManager != null;
         Notification notification=intent.getParcelableExtra("noti");
-        notificationManager.notify(1 , notification) ;
+        notificationManager.notify(1,notification);
         Log.d("noti","run");
 
 
