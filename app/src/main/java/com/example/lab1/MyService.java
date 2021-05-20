@@ -78,7 +78,6 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         mp.stop();
-        mp.release();
         super.onDestroy();
     }
 

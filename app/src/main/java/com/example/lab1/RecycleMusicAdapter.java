@@ -10,6 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.ArrayList;
 
 public class RecycleMusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -44,9 +46,13 @@ public class RecycleMusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Music music=list.get(position);
         ((MyViewHolder)holder).id.setText(music.getId()+"");
-        ((MyViewHolder)holder).image.setImageResource(music.getImage());
         ((MyViewHolder)holder).name.setText(music.getName()+"");
         ((MyViewHolder)holder).name_casi.setText(music.getName_casi()+"");
+        byte[] art=MainActivity.getAlbumArt(music.getImage());
+        if(art!=null)
+            Glide.with(context).asBitmap().load(art).into(((MyViewHolder)holder).image);
+        else
+            Glide.with(context).asBitmap().load(R.drawable.music).into(((MyViewHolder)holder).image);
 
     }
 

@@ -19,7 +19,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -38,7 +40,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import java.io.IOException;
+
+import com.bumptech.glide.Glide;
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean replay;
     private Intent intent;
     private ProgressBar progressBar;
-
+    public static byte [] art;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,7 +97,11 @@ public class MainActivity extends AppCompatActivity {
         }
         if (contain == false) {
             media_active = list.get(0).getId();
-            image.setImageResource(list.get(0).getImage());
+            art=MainActivity.getAlbumArt(list.get(0).getImage());
+            if(art!=null)
+                Glide.with(this).asBitmap().load(art).into(image);
+            else
+                Glide.with(this).asBitmap().load(R.drawable.music).into(image);
             name.setText(list.get(0).getName());
             casi.setText(list.get(0).getName_casi());
             intent.putExtra("media", media_active);
@@ -107,7 +115,11 @@ public class MainActivity extends AppCompatActivity {
             Log.d("not contain", "not contain");
         } else {
             media_active = music.getId();
-            image.setImageResource(music.getImage());
+            art=MainActivity.getAlbumArt(music.getImage());
+            if(art!=null)
+                Glide.with(this).asBitmap().load(art).into(image);
+            else
+                Glide.with(this).asBitmap().load(R.drawable.music).into(image);
             name.setText(music.getName());
             casi.setText(music.getName_casi());
             intent.putExtra("media", media_active);
@@ -182,7 +194,11 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("MUSIC SERVICE", "Error starting data source", e);
                 }
                 media_active = list.get(position).getId();
-                image.setImageResource(list.get(position).getImage());
+                art=MainActivity.getAlbumArt(list.get(position).getImage());
+                if(art!=null)
+                    Glide.with(MainActivity.this).asBitmap().load(art).into(image);
+                else
+                    Glide.with(MainActivity.this).asBitmap().load(R.drawable.music).into(image);
                 name.setText(list.get(position).getName());
                 casi.setText(list.get(position).getName_casi());
                 toggleButton.setChecked(true);
@@ -280,7 +296,11 @@ public class MainActivity extends AppCompatActivity {
                             Log.e("MUSIC SERVICE", "Error starting data source", e);
                         }
                         media_active = list.get(i).getId();
-                        image.setImageResource(list.get(i).getImage());
+                        art=MainActivity.getAlbumArt(list.get(i).getImage());
+                        if(art!=null)
+                            Glide.with(MainActivity.this).asBitmap().load(art).into(image);
+                        else
+                            Glide.with(MainActivity.this).asBitmap().load(R.drawable.music).into(image);
                         name.setText(list.get(i).getName());
                         casi.setText(list.get(i).getName_casi());
                         toggleButton.setChecked(true);
@@ -318,7 +338,11 @@ public class MainActivity extends AppCompatActivity {
                             Log.e("MUSIC SERVICE", "Error starting data source", e);
                         }
                         media_active = list.get(i).getId();
-                        image.setImageResource(list.get(i).getImage());
+                        art=MainActivity.getAlbumArt(list.get(i).getImage());
+                        if(art!=null)
+                            Glide.with(MainActivity.this).asBitmap().load(art).into(image);
+                        else
+                            Glide.with(MainActivity.this).asBitmap().load(R.drawable.music).into(image);
                         name.setText(list.get(i).getName());
                         casi.setText(list.get(i).getName_casi());
                         toggleButton.setChecked(true);
@@ -330,9 +354,14 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
     }
-
+    public static byte[] getAlbumArt(String uri){
+        MediaMetadataRetriever mediaMetadataRetriever=new MediaMetadataRetriever();
+        mediaMetadataRetriever.setDataSource(uri);
+        byte [] art=mediaMetadataRetriever.getEmbeddedPicture();
+        mediaMetadataRetriever.release();
+        return art;
+    }
     private void getList(){
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
@@ -342,12 +371,15 @@ public class MainActivity extends AppCompatActivity {
             int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
             int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
             int artistColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
+            int idAlbum = musicCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
 
             do {
                 int thisId = musicCursor.getInt(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist=musicCursor.getString(artistColumn);
-                list.add(new Music(thisId,R.drawable.music,thisTitle,thisArtist));
+                String thisAlbum=musicCursor.getString(idAlbum);
+                list.add(new Music(thisId,thisAlbum,thisTitle,thisArtist));
+                Log.d("list",thisAlbum);
             }
             while (musicCursor.moveToNext());
         }
@@ -407,7 +439,11 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 media_active = list.get(i).getId();
-                image.setImageResource(list.get(i).getImage());
+                art=MainActivity.getAlbumArt(list.get(i).getImage());
+                if(art!=null)
+                    Glide.with(this).asBitmap().load(art).into(image);
+                else
+                    Glide.with(this).asBitmap().load(R.drawable.music).into(image);
                 name.setText(list.get(i).getName());
                 casi.setText(list.get(i).getName_casi());
                 toggleButton.setChecked(true);
@@ -426,7 +462,7 @@ public class MainActivity extends AppCompatActivity {
     public void save() {
         SharedPreferences sharedPreferences = getSharedPreferences("music.txt", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        int img = -1;
+        String img = "";
         String name = "";
         String casi = "";
         int media = -1;
@@ -439,7 +475,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
         }
-        editor.putInt("img", img);
+        editor.putString("img", img);
         editor.putString("name", name);
         editor.putString("casi", casi);
         editor.putInt("media", media);
@@ -451,7 +487,7 @@ public class MainActivity extends AppCompatActivity {
     public void restore(Music music) {
         SharedPreferences sharedPreferences = getSharedPreferences("music.txt", MODE_PRIVATE);
         music.setId(sharedPreferences.getInt("id", -1));
-        music.setImage(sharedPreferences.getInt("img", -1));
+        music.setImage(sharedPreferences.getString("img", ""));
         music.setName(sharedPreferences.getString("name", ""));
         music.setName_casi(sharedPreferences.getString("casi", ""));
         music.setId(sharedPreferences.getInt("media", -1));
@@ -501,6 +537,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "xin duoc quyen roi", Toast.LENGTH_SHORT).show();
         }
     }
+
 }
 
 

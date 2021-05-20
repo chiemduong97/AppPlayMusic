@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
+
 public class MyReciever2 extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -49,7 +51,11 @@ public class MyReciever2 extends BroadcastReceiver {
                         Log.e("MUSIC SERVICE", "Error starting data source", e);
                     }
                     MainActivity.media_active = MainActivity.list.get(i).getId();
-                    MainActivity.image.setImageResource(MainActivity.list.get(i).getImage());
+                    MainActivity.art=MainActivity.getAlbumArt(MainActivity.list.get(i).getImage());
+                    if(MainActivity.art!=null)
+                        Glide.with(context).asBitmap().load(MainActivity.art).into(MainActivity.image);
+                    else
+                        Glide.with(context).asBitmap().load(R.drawable.music).into(MainActivity.image);
                     MainActivity.name.setText(MainActivity.list.get(i).getName());
                     MainActivity.casi.setText(MainActivity.list.get(i).getName_casi());
                     MainActivity.toggleButton.setChecked(true);
@@ -84,7 +90,11 @@ public class MyReciever2 extends BroadcastReceiver {
                         Log.e("MUSIC SERVICE", "Error starting data source", e);
                     }
                     MainActivity.media_active =  MainActivity.list.get(i).getId();
-                    MainActivity.image.setImageResource( MainActivity.list.get(i).getImage());
+                    MainActivity.art=MainActivity.getAlbumArt(MainActivity.list.get(i).getImage());
+                    if(MainActivity.art!=null)
+                        Glide.with(context).asBitmap().load(MainActivity.art).into(MainActivity.image);
+                    else
+                        Glide.with(context).asBitmap().load(R.drawable.music).into(MainActivity.image);
                     MainActivity.name.setText( MainActivity.list.get(i).getName());
                     MainActivity.casi.setText(MainActivity.list.get(i).getName_casi());
                     MainActivity.toggleButton.setChecked(true);

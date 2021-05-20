@@ -2,11 +2,11 @@ package com.example.lab1;
 
 public class Music {
     private int id;
-    private int image;
+    private String image;
     private String name;
     private String name_casi;
     public Music(){}
-    public Music(int id,int image,String name,String name_casi){
+    public Music(int id,String image,String name,String name_casi){
         this.id=id;
         this.image=image;
         this.name=name;
@@ -21,11 +21,11 @@ public class Music {
         this.id = id;
     }
 
-    public int getImage() {
+    public String getImage() {
         return image;
     }
 
-    public void setImage(int image) {
+    public void setImage(String image) {
         this.image = image;
     }
 
