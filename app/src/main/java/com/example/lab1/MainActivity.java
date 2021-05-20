@@ -3,30 +3,42 @@ package com.example.lab1;
 import androidx.annotation.IdRes;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RemoteViews;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     public static ToggleButton toggleButton, toggleButtonReplay;
     public static int media_active;
     public static ImageView image;
-    public static TextView name;
+    public static TextView name,casi;
     private ImageView prev, next;
     public static boolean pause;
     private boolean replay;
@@ -51,20 +63,24 @@ public class MainActivity extends AppCompatActivity {
         toggleButtonReplay = findViewById(R.id.toggle_replay);
         image = findViewById(R.id.image);
         name = findViewById(R.id.name);
+        casi = findViewById(R.id.casi);
         prev = findViewById(R.id.prev);
         next = findViewById(R.id.next);
         progressBar = findViewById(R.id.progessBar);
         intent = new Intent(MainActivity.this, MyService.class);
-
         list = new ArrayList<>();
-        list.add(new Music(1, R.drawable.tutam, "Tự tâm", R.raw.tutam));
-        list.add(new Music(2, R.drawable.hoanokhongmau, "Hoa nở không màu", R.raw.hoanokhongmau));
-        list.add(new Music(3, R.drawable.niuduyen, "Níu duyên", R.raw.niuduyen));
-        list.add(new Music(4, R.drawable.thethai, "Thế thái", R.raw.thethai));
-        list.add(new Music(5, R.drawable.tinhbandieuky, "Tình bạn diệu kỳ", R.raw.tinhbandieuky));
-        media_active = list.get(0).getMedia();
-        Animation animation;
-        animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.animation);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                getList();
+            }
+            else {
+                Toast.makeText(MainActivity.this, "can kiem tra, hien dialog xin quyen",Toast.LENGTH_SHORT).show();
+                ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1);
+            }
+        }
+
+        media_active = list.get(0).getId();
+        Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.animation);
         Music music = new Music();
         restore(music);
         toggleButtonReplay.setChecked(replay);
@@ -76,9 +92,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (contain == false) {
-            media_active = list.get(0).getMedia();
+            media_active = list.get(0).getId();
             image.setImageResource(list.get(0).getImage());
             name.setText(list.get(0).getName());
+            casi.setText(list.get(0).getName_casi());
             intent.putExtra("media", media_active);
             toggleButton.setChecked(true);
             stopService(intent);
@@ -89,9 +106,10 @@ public class MainActivity extends AppCompatActivity {
             save();
             Log.d("not contain", "not contain");
         } else {
-            media_active = music.getMedia();
+            media_active = music.getId();
             image.setImageResource(music.getImage());
             name.setText(music.getName());
+            casi.setText(music.getName_casi());
             intent.putExtra("media", media_active);
             toggleButton.setChecked(true);
             save();
@@ -114,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }.start();
+            Log.d("mp not null", "mp not null");
         }
         if (pause == true) {
             stopService(intent);
@@ -125,7 +144,15 @@ public class MainActivity extends AppCompatActivity {
             if (MyService.mp == null) {
                 stopService(intent);
                 startService(intent);
-                MyService.mp = MediaPlayer.create(MainActivity.this, media_active);
+                Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, media_active);
+                try {
+                    MyService.mp=new MediaPlayer();
+                    MyService.mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    MyService.mp.setDataSource(getApplicationContext(),trackUri);
+                    MyService.mp.prepare();
+                } catch (Exception e) {
+                    Log.e("MUSIC SERVICE", "Error starting data source", e);
+                }
                 pause = true;
                 toggleButton.setChecked(false);
                 image.clearAnimation();
@@ -145,10 +172,19 @@ public class MainActivity extends AppCompatActivity {
                 pause = true;
                 toggleButton.setChecked(false);
                 MyService.mp.stop();
-                MyService.mp = MediaPlayer.create(MainActivity.this, list.get(position).getMedia());
-                media_active = list.get(position).getMedia();
+                Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, list.get(position).getId());
+                try {
+                    MyService.mp=new MediaPlayer();
+                    MyService.mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    MyService.mp.setDataSource(getApplicationContext(),trackUri);
+                    MyService.mp.prepare();
+                } catch (Exception e) {
+                    Log.e("MUSIC SERVICE", "Error starting data source", e);
+                }
+                media_active = list.get(position).getId();
                 image.setImageResource(list.get(position).getImage());
                 name.setText(list.get(position).getName());
+                casi.setText(list.get(position).getName_casi());
                 toggleButton.setChecked(true);
                 pause = false;
                 save();
@@ -159,7 +195,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }));
-
 
         toggleButtonReplay.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -224,21 +259,30 @@ public class MainActivity extends AppCompatActivity {
                 pause = true;
                 toggleButton.setChecked(false);
                 for (int i = 0; i < list.size(); i++) {
-                    if (media_active == list.get(i).getMedia()) {
+                    if (media_active == list.get(i).getId()) {
                         if (i == 0)
-                            media_active = list.get(list.size() - 1).getMedia();
+                            media_active = list.get(list.size() - 1).getId();
                         else
-                            media_active = list.get(i - 1).getMedia();
+                            media_active = list.get(i - 1).getId();
                         break;
                     }
                 }
                 for (int i = 0; i < list.size(); i++) {
-                    if (media_active == list.get(i).getMedia()) {
+                    if (media_active == list.get(i).getId()) {
                         MyService.mp.stop();
-                        MyService.mp = MediaPlayer.create(MainActivity.this, list.get(i).getMedia());
-                        media_active = list.get(i).getMedia();
+                        Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, list.get(i).getId());
+                        try {
+                            MyService.mp=new MediaPlayer();
+                            MyService.mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                            MyService.mp.setDataSource(getApplicationContext(),trackUri);
+                            MyService.mp.prepare();
+                        } catch (Exception e) {
+                            Log.e("MUSIC SERVICE", "Error starting data source", e);
+                        }
+                        media_active = list.get(i).getId();
                         image.setImageResource(list.get(i).getImage());
                         name.setText(list.get(i).getName());
+                        casi.setText(list.get(i).getName_casi());
                         toggleButton.setChecked(true);
                         pause = false;
                         save();
@@ -253,21 +297,30 @@ public class MainActivity extends AppCompatActivity {
                 pause = true;
                 toggleButton.setChecked(false);
                 for (int i = 0; i < list.size(); i++) {
-                    if (media_active == list.get(i).getMedia()) {
+                    if (media_active == list.get(i).getId()) {
                         if (i == list.size() - 1)
-                            media_active = list.get(0).getMedia();
+                            media_active = list.get(0).getId();
                         else
-                            media_active = list.get(i + 1).getMedia();
+                            media_active = list.get(i + 1).getId();
                         break;
                     }
                 }
                 for (int i = 0; i < list.size(); i++) {
-                    if (media_active == list.get(i).getMedia()) {
+                    if (media_active == list.get(i).getId()) {
                         MyService.mp.stop();
-                        MyService.mp = MediaPlayer.create(MainActivity.this, list.get(i).getMedia());
-                        media_active = list.get(i).getMedia();
+                        Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, list.get(i).getId());
+                        try {
+                            MyService.mp=new MediaPlayer();
+                            MyService.mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                            MyService.mp.setDataSource(getApplicationContext(),trackUri);
+                            MyService.mp.prepare();
+                        } catch (Exception e) {
+                            Log.e("MUSIC SERVICE", "Error starting data source", e);
+                        }
+                        media_active = list.get(i).getId();
                         image.setImageResource(list.get(i).getImage());
                         name.setText(list.get(i).getName());
+                        casi.setText(list.get(i).getName_casi());
                         toggleButton.setChecked(true);
                         pause = false;
                         save();
@@ -278,6 +331,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void getList(){
+        ContentResolver musicResolver = getContentResolver();
+        Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
+        if (musicCursor != null && musicCursor.moveToFirst()) {
+            // Get columns
+            int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
+            int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
+            int artistColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
+
+            do {
+                int thisId = musicCursor.getInt(idColumn);
+                String thisTitle = musicCursor.getString(titleColumn);
+                String thisArtist=musicCursor.getString(artistColumn);
+                list.add(new Music(thisId,R.drawable.music,thisTitle,thisArtist));
+            }
+            while (musicCursor.moveToNext());
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -312,21 +385,31 @@ public class MainActivity extends AppCompatActivity {
         pause = true;
         toggleButton.setChecked(false);
         for (int i = 0; i < list.size(); i++) {
-            if (media_active == list.get(i).getMedia()) {
+            if (media_active == list.get(i).getId()) {
                 if (i == list.size() - 1)
-                    media_active = list.get(0).getMedia();
+                    media_active = list.get(0).getId();
                 else
-                    media_active = list.get(i + 1).getMedia();
+                    media_active = list.get(i + 1).getId();
                 break;
             }
         }
         for (int i = 0; i < list.size(); i++) {
-            if (media_active == list.get(i).getMedia()) {
+            if (media_active == list.get(i).getId()) {
                 MyService.mp.stop();
-                MyService.mp = MediaPlayer.create(MainActivity.this, list.get(i).getMedia());
-                media_active = list.get(i).getMedia();
+                Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, list.get(i).getId());
+                try {
+                    MyService.mp=new MediaPlayer();
+                    MyService.mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    MyService.mp.setDataSource(getApplicationContext(),trackUri);
+                    MyService.mp.prepare();
+                } catch (Exception e) {
+                    Log.e("MUSIC SERVICE", "Error starting data source", e);
+                }
+
+                media_active = list.get(i).getId();
                 image.setImageResource(list.get(i).getImage());
                 name.setText(list.get(i).getName());
+                casi.setText(list.get(i).getName_casi());
                 toggleButton.setChecked(true);
                 pause = false;
                 save();
@@ -340,26 +423,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
     public void save() {
         SharedPreferences sharedPreferences = getSharedPreferences("music.txt", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        int id = -1;
         int img = -1;
         String name = "";
+        String casi = "";
         int media = -1;
         for (int i = 0; i < list.size(); i++) {
-            if (media_active == list.get(i).getMedia()) {
-                id = list.get(i).getId();
+            if (media_active == list.get(i).getId()) {
                 img = list.get(i).getImage();
                 name = list.get(i).getName();
-                media = list.get(i).getMedia();
+                casi = list.get(i).getName_casi();
+                media = list.get(i).getId();
                 break;
             }
         }
-        editor.putInt("id", id);
         editor.putInt("img", img);
         editor.putString("name", name);
+        editor.putString("casi", casi);
         editor.putInt("media", media);
         editor.putBoolean("pause", pause);
         editor.putBoolean("replay", replay);
@@ -371,7 +453,8 @@ public class MainActivity extends AppCompatActivity {
         music.setId(sharedPreferences.getInt("id", -1));
         music.setImage(sharedPreferences.getInt("img", -1));
         music.setName(sharedPreferences.getString("name", ""));
-        music.setMedia(sharedPreferences.getInt("media", -1));
+        music.setName_casi(sharedPreferences.getString("casi", ""));
+        music.setId(sharedPreferences.getInt("media", -1));
         pause = sharedPreferences.getBoolean("pause", false);
         replay = sharedPreferences.getBoolean("replay", false);
     }
@@ -410,6 +493,13 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this,MyReciever2.class);
         intent.putExtra("btn", id);
         return PendingIntent.getBroadcast(this, id, intent, 0);
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "xin duoc quyen roi", Toast.LENGTH_SHORT).show();
+        }
     }
 }
 

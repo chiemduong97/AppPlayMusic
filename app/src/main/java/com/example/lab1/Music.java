@@ -4,13 +4,13 @@ public class Music {
     private int id;
     private int image;
     private String name;
-    private int media;
+    private String name_casi;
     public Music(){}
-    public Music(int id,int image,String name,int media){
+    public Music(int id,int image,String name,String name_casi){
         this.id=id;
         this.image=image;
         this.name=name;
-        this.media=media;
+        this.name_casi=name_casi;
     }
 
     public int getId() {
@@ -37,11 +37,11 @@ public class Music {
         this.name = name;
     }
 
-    public int getMedia() {
-        return media;
+    public String getName_casi() {
+        return name_casi;
     }
 
-    public void setMedia(int media) {
-        this.media = media;
+    public void setName_casi(String name_casi) {
+        this.name_casi = name_casi;
     }
 }

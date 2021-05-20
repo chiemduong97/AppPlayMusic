@@ -23,11 +23,14 @@ public class RecycleMusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         public TextView id;
         public ImageView image;
         public TextView name;
+        public TextView name_casi;
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             id=(TextView)itemView.findViewById(R.id.id_music);
             image=(ImageView)itemView.findViewById(R.id.image_music);
             name=(TextView)itemView.findViewById(R.id.name_music);
+            name_casi=(TextView)itemView.findViewById(R.id.name_casi);
+
         }
     }
     @NonNull
@@ -43,6 +46,8 @@ public class RecycleMusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         ((MyViewHolder)holder).id.setText(music.getId()+"");
         ((MyViewHolder)holder).image.setImageResource(music.getImage());
         ((MyViewHolder)holder).name.setText(music.getName()+"");
+        ((MyViewHolder)holder).name_casi.setText(music.getName_casi()+"");
+
     }
 
     @Override

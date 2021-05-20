@@ -32,16 +32,30 @@
                         android:layout_height="100dp"
                         />
                 </androidx.cardview.widget.CardView>
-
-                <TextView
-                    android:id="@+id/name"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Tên bài hát"
-                    android:layout_gravity="center"
-                    android:paddingLeft="20dp"
-                    android:textSize="20dp"
-                    android:textColor="@color/black"/>
+                    android:orientation="vertical"
+                    android:layout_gravity="center">
+                    <TextView
+                        android:id="@+id/name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Tên bài hát"
+                        android:paddingLeft="20dp"
+                        android:textSize="15dp"
+                        android:textColor="@color/black"/>
+                    <TextView
+                        android:id="@+id/casi"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Tên casi"
+                        android:layout_gravity="center"
+                        android:paddingLeft="20dp"
+                        android:textSize="10dp"
+                        android:textColor="@color/black"/>
+                </LinearLayout>
+
             </LinearLayout>
             <ProgressBar
                 android:id="@+id/progessBar"
